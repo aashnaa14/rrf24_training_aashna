@@ -2,40 +2,47 @@
 # 01. Data processing
 
 ### Libraries
-# library(haven)
-# library(dplyr)
-# library(tidyr)
-# library(stringr)
-# library(labelled)
+library(haven)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(labelled)
 
 ### Loading data ----
 
 # Load the dataset
-data_path <- "ADD-YOUR-PATH"
+data_path <- "C:\\Users\\wb632588\\Downloads\\DataWork\\DataWork\\Data" #COMMENT: EITHER \\ OR / FOR COPYING FILE PATH 
 data      <- read_dta(file.path(data_path, "Raw/TZA_CCT_baseline.dta"))
 
 ### Remove duplicates based on hhid
-data_dedup <- data %>%
+data_clean<- data %>%
+    distinct(hhid, .keep_all = TRUE) #COMMENT - USE TO FIND DUPLICATES 
     ......
 
 ### Household (HH) level data ----
 
 #### Tidying data for HH level
-data_tidy_hh <- data_dedup %>%
+data_tidy_hh <- data_clean %>%
+        select(vid,hhid,enid, floor:n_elder, food_cons:submissionday) 
+    #COMMENT - HOW MANY DATAFRAMES - 3 - HH + IND + SECONDARY DATA AND HOW MANY UNITS OF OBSERVATION IN EACH DATAFRAME 
     ......
 
 ### Data cleaning for Household-member (HH-member) level
 data_clean_hh <- data_tidy_hh %>%
     # Convert submissionday to date
-    mutate(...... = as.Date(......, format = "%Y-%m-%d %H:%M:%S")) %>%
+    mutate(submissionday = as.Date(submissionday, format = "%Y-%m-%d %H:%M:%S")) %>%
     # Convert duration to numeric (if it is not already)
-    mutate(......) %>%
+    mutate(duration = as.numeric(duration)) %>%
     # Convert ar_farm_unit to factor (categorical data)
-    mutate(......) %>%
+    mutate(ar_unit = as.factor(ar_farm_unit)) %>%
+    mutate(ar_unit = na_if(ar_unit, ""))%>%
+    #Clean crop_other variable (capitalise letters)
+    mutate(crop_other = str_to_title(crop_other))%>%
     # Replace values in the crop variable based on crop_other using regex for new crops
-    mutate(crop = case_when(
-        ......
-    )) %>%
+    mutate(crop_other = case_when(
+    str_detect(crop_other, "coconut") ~ 40,
+    str_detect(crop_other, "seseme") ~ 41,
+    TRUE ~ crop)) %>% 
     # Recode negative numeric values (-88) as missing (NA)
     mutate(across(......)) %>%
     # Add variable labels
@@ -46,12 +53,12 @@ data_clean_hh <- data_tidy_hh %>%
 # Save the household data
 write_dta(data_clean_hh, file.path(data_path, "Intermediate/TZA_CCT_HH.dta"))
 
-### Household member (HH-member) level data ----
+### Household member (HH-member) level data 
 
 #### Tidying data for HH-member level
-data_tidy_mem <- data_dedup %>%
-    select(......,
-           starts_with(......)) %>%
+data_tidy_mem <- data_clean %>%
+    select(vid,hhid,enid,
+           starts_with("gender")),starts_with("age")),starts_with("read")),starts_with("clinic_visit")),starts_with("sick")),starts_with("days_sick")),starts_with("treat_fin")),starts_with("treat_cost")), starts_with("ill_impact")),starts_with(gender)) %>%
     pivot_longer(cols = -c(vid, hhid, enid),  # Keep IDs static
                  names_to = ......,
                  names_pattern = "(.*)_(\\d+)")  # Capture the variable and the suffix
@@ -59,7 +66,8 @@ data_tidy_mem <- data_dedup %>%
 ### Data cleaning for HH-member level
 data_clean_mem <- data_tidy_mem %>%
     # Drop rows where gender is missing (NA)
-    ...... %>%
+    filter(!is.na(gender))%>%
+    set_variable_labels
     # Variable labels
     ......
 
@@ -79,3 +87,5 @@ secondary_data <- secondary_data %>%
 
 # Save the final tidy secondary data
 write_dta(secondary_data, file.path(data_path, "Intermediate/TZA_amenity_tidy.dta"))
+
+
