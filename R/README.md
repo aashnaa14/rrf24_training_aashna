@@ -1,6 +1,7 @@
 Author
 
-# Reproducible Research Fundamentals 2024 - R
+
+**Reproducible Research Fundamentals 2024 - R**
 
 Welcome to the **Reproducible Research Fundamentals 2024** training repository. This repository will guide you through all the exercises across the following stages:
 
@@ -14,3 +15,12 @@ Feel free to update this README as you progress through the sessions and customi
 
 Remember this is what you will share with your peer at the end of the training for review so this needs to be updated before sharing. 
 
+#Steps to run the code 
+
+1. Open the .Rproj
+2. From the Rproj open the main.R
+3. You need to recover the environment by running 'renv::restore()' and follow the prompts that will appear on your console. 
+4. Change the data_path on line 31
+5. Run the main.R 
+
+This will create all the needed exhibits. 
